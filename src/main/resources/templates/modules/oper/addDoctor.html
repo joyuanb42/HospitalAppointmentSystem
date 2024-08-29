@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>增加医生</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div class="wrap">
+<div>
+    <div class="d-flex justify-content-between align-items-center">
+        <h5>添加医生信息</h5>
+        <a th:href="@{/doctor/toShowDoctor}" class="btn btn-close float-right"></a>
+    </div>
+    <hr class="border border-primary border-3 opacity-75">
+    <form th:action="@{/doctor/addDoctor}" method="post" style="width: 500px;margin: auto">
+        <div class="mb-3">
+            <label for="doctorName" class="form-label">医生姓名</label>
+            <input type="text" class="form-control" id="doctorName" name="doctorName" required>
+        </div>
+        <div class="mb-3">
+            <label for="doctorAge"  class="form-label">医生年龄</label>
+            <input type="text" class="form-control" id="doctorAge" name="doctorAge" required>
+        </div>
+        <div class="mb-3">
+            <label for="doctorGender" class="form-label">医生性别</label>
+            <input type="text" class="form-control" id="doctorGender" name="doctorGender"  required>
+        </div>
+        <div class="mb-3">
+            <label for="doctorSpecialty" class="form-label">医生专业</label>
+            <input type="text" class="form-control" id="doctorSpecialty" name="doctorSpecialty"  required>
+        </div>
+        <div class="mb-3">
+            <label for="doctorPhone" class="form-label">医生电话</label>
+            <input type="text" class="form-control" id="doctorPhone" name="doctorPhone" required>
+        </div>
+        <div class="mb-3">
+            <button class="btn btn-primary" type="submit">添加</button>
+            <button type="reset" class="btn btn-secondary">重置</button>
+        </div>
+    </form>
+</div>
+</div>
+</body>
+<style>
+    .wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 110vh;
+    }
+</style>
+</html>

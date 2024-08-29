@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录</title>
+
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.js}"></script>
+
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="container-sm wrap-signup">
+            <form id="loginForm">
+                <h3>
+                    医院预约挂号系统
+                    <small class="text-muted">用户登录</small>
+                </h3>
+                <hr class="border border-primary border-3 opacity-75">
+                <div class="mb-3">
+                    <label class="form-label">账户</label>
+                    <input type="text" class="form-control" id="username" name="username">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="password" name="password">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">验证码</label>
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <input type="text" class="form-control" id="captcha" name="captcha" style="flex-grow: 1;">
+                        <a href="javascript:reloadCaptcha()" style="margin-left: 10px;">
+                            <img id="captchaImage" name="captchaImage" th:src="@{/captcha}">
+                        </a>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">登录</button>
+                <button type="reset" class="btn btn-secondary">重置</button>
+                <div class="alert alert-primary" role="alert" style="max-width: 100%; margin-top: 20px;">
+                    没有用户？请先 <a th:href="@{/toRegist}" class="alert-link">注册</a>
+                </div>
+            </form>
+        </div>
+
+
+
+    </div>
+
+</body>
+
+<script>
+
+    function reloadCaptcha() {
+        $('#captchaImage').attr('src','[[@{/captcha}]]' + '?d=' + new Date().getTime());
+    }
+
+    $(function() {
+        $('#loginForm').submit(function() {
+            $.ajax({
+                type: 'GET',
+                url: '/HospitalAppointmentSystem_war/login',
+                data:  $(this).serialize(),
+                dataType: 'json',
+                contentType: 'application/json;charset=utf-8',
+                async: false,
+                success: function (result) {
+                    if(result.success){
+                        window.location.href="/HospitalAppointmentSystem_war/main";
+                    }
+                    else {
+                        alert(result.message);
+                        window.location.href="/HospitalAppointmentSystem_war/"
+                    }
+                },
+                error:function () {
+                    alert("登陆失败，找不到地址！");
+                }
+            });
+            return false;
+        });
+    });
+</script>
+
+<style>
+    .wrap-signup {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 50%;
+    }
+</style>
+
+</html>

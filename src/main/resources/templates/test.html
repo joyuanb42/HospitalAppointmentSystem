@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录</title>
+
+    <script type="text/javascript" th:src="@{/ztree/jquery-3.7.1.min.js}"></script>
+
+</head>
+<body>
+<div>
+    <form method="get" id="test">
+        <button type="submit">测试</button>
+        <input type="submit" value="测试2">
+    </form>
+</div>
+</body>
+
+<script>
+    $(function () {
+        $("#test").submit(function () {
+            $.ajax({
+                url: "/HospitalAppointmentSystem_war/test",
+                type: "Get",
+                success: function () {
+                    console.log("成功")
+                    alert("测试成功")
+                    window.location.href = "/HospitalAppointmentSystem_war/test";
+                },
+                error: function () {
+                    console.log("失败")
+                    alert("测试失败")
+                }
+            });
+        });
+    });
+</script>
+</html>

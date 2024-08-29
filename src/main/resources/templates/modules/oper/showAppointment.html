@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>预约列表</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/pagination.css}">
+    <link rel="stylesheet" th:href="@{/css/searchStyle.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/pagination.js}"></script>
+</head>
+<body>
+<div style="margin-bottom: 20px">
+    预约医生:
+    <input type="text" id="doctorName" name="doctorName">
+    就诊科目：
+    <select id="doctorSpeciality" name="doctorSpeciality">
+        <option value="">请选择</option>
+        <option value="外科">外科</option>
+        <option value="内科">内科</option>
+        <option value="骨科">骨科</option>
+        <option value="儿科">儿科</option>
+    </select>
+    <input type="submit" onclick="selectDoctor()" value="查询" class="btn btn-primary">
+    <a th:href="@{/appointment/toAddAppointment}" class="btn btn-success">预约医生</a>
+    <a th:href="@{/appointment/toEditAppointment}" class="btn btn-warning">修改预约</a>
+    <button id="deleteAppointmentsButton" class="btn btn-danger">删除预约</button>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+</div>
+<div>
+    <table id="doctorsTable" border="1">
+        <thead>
+        <tr>
+            <th></th>
+            <th>医生ID</th>
+            <th>医生姓名</th>
+            <th>医生专业</th>
+            <th>医生电话</th>
+            <th>病人ID</th>
+            <th>病人姓名</th>
+            <th>病人电话</th>
+            <th>预约时间</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="pagination" class="pagination"></div>
+</div>
+</body>
+
+<script>
+
+    $(document).ready(function() {
+        selectDoctor();
+    });
+
+    var pageNum
+    var pages
+    var pageSize = 5;
+
+    function selectDoctor(pageNo) {
+        var doctorName = $('#doctorName').val();
+        var doctorSpeciality = $('#doctorSpeciality').val();
+        pageNum = pageNo || 1;
+
+        $.ajax({
+            url: '/HospitalAppointmentSystem_war/doctor/selectDoctorByPage?',
+            type: 'GET',
+            data: {
+                pageNum: pageNum,
+                pageSize: pageSize,
+                doctorName: doctorName,
+                doctorSpeciality: doctorSpeciality
+            },
+            dataType: 'json',
+            contentType: 'application/json;charset=utf-8',
+            success: function (data) {
+                pageNum = data.pageNum;
+                pages = data.pages;
+                loadDoctors(data);
+            }
+        });
+    };
+
+    function loadDoctors(data) {
+        var table = $('#doctorsTable tbody');
+        table.empty();
+        $.each(data.list, function(index, doctor) {
+            if (!doctor.appointment) {
+                table.append(
+                    "<tr>" +
+                    "<td class='center-checkbox'><input type='checkbox' name='appointmentCheckbox' value='" + doctor.appointment.appointmentID + "' disabled>"+ "</td>" +
+                    "<td>" + doctor.doctorID+ "</td>" +
+                    "<td>" + doctor.doctorName + "</td>" +
+                    "<td>" + doctor.doctorSpecialty + "</td>" +
+                    "<td>" + doctor.doctorPhone + "</td>" +
+                    "</tr>"
+                );
+            } else {
+                var patientID = doctor.appointment.patientID ? doctor.appointment.patientID : 'N/A';
+                var patientName = doctor.appointment.patientName ? doctor.appointment.patientName : 'N/A';
+                var patientPhone = doctor.appointment.patientPhone ? doctor.appointment.patientPhone : 'N/A';
+                var appointmentDate = new Date(doctor.appointment.appointmentTime).toLocaleDateString('zh-CN');
+                if (patientID === 'N/A') {
+                    table.append(
+                        "<tr>" +
+                        "<td class='center-checkbox'><input type='checkbox' name='appointmentCheckbox' value='" + doctor.appointment.appointmentID + "' disabled>"+ "</td>" +
+                        "<td>" + doctor.doctorID + "</td>" +
+                        "<td>" + doctor.doctorName + "</td>" +
+                        "<td>" + doctor.doctorSpecialty + "</td>" +
+                        "<td>" + doctor.doctorPhone + "</td>" +
+                        "</tr>"
+                    );
+                } else {
+                    table.append(
+                        "<tr>" +
+                        "<td class='center-checkbox'><input type='checkbox' name='appointmentCheckbox' value='" + doctor.appointment.appointmentID + "'>"+ "</td>" +
+                        "<td>" + doctor.doctorID + "</td>" +
+                        "<td>" + doctor.doctorName + "</td>" +
+                        "<td>" + doctor.doctorSpecialty + "</td>" +
+                        "<td>" + doctor.doctorPhone + "</td>" +
+                        "<td>" + patientID + "</td>" +
+                        "<td>" + patientName + "</td>" +
+                        "<td>" + patientPhone + "</td>" +
+                        "<td>" + appointmentDate + "</td>" +
+                        "</tr>"
+                    );
+                }
+            }
+        });
+        pagination({
+            cur: data.pageNum,
+            total: data.pages,
+            len: data.pages,
+            targetId: 'pagination',
+            callback: function (total) {
+                var oPages = document.getElementsByClassName('page-index');
+                for (var i = 0; i < oPages.length; i++) {
+                    oPages[i].onclick = function () {
+                        selectDoctor(this.getAttribute('data-index'), pageSize);
+                    }
+                }
+                var goPage = document.getElementById('go-search');
+                goPage.onclick = function () {
+                    var index = document.getElementById('yeshu').value;
+                    if (!index || (+index > total) || (+index < 1)) {
+                        return;
+                    }
+                    selectDoctor(index, pageSize);
+                }
+            }
+        });
+    }
+
+    // 批量删除预约
+    $('#deleteAppointmentsButton').click(function() {
+        var appointmentIDs = [];
+        $('input[name="appointmentCheckbox"]:checked').each(function() {
+            appointmentIDs.push($(this).val());
+        });
+        if (appointmentIDs.length > 0) {
+            var confirmDelete = confirm("确定要取消选中的预约记录吗？");
+            if (confirmDelete) {
+                $.ajax({
+                    url: '/HospitalAppointmentSystem_war/appointment/removeAppointment',
+                    type: 'DELETE',
+                    data: JSON.stringify(appointmentIDs),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert(response)
+                        selectDoctor();
+                    },
+                    error: function(error) {
+                        console.log('Delete error:', error);
+                    }
+                });
+            }
+        } else {
+            alert("请先选择要取消的预约记录");
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>病人列表</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/pagination.css}">
+    <link rel="stylesheet" th:href="@{/css/searchStyle.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/pagination.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div style="margin-bottom: 20px">
+    查询患者:
+    <input type="text" id="patientName" name="patientName">
+    <input type="submit" onclick="selectPatient()" value="查询" class="btn btn-primary">
+    <a th:href="@{/patient/toAddPatient}" class="btn btn-success">添加病人</a>
+    <a th:href="@{/patient/toEditPatient}" class="btn btn-warning">修改病人</a>
+    <button id="deletePatientsButton" class="btn btn-danger">删除病人</button>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#chartModal">查看图表</button>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+</div>
+<div>
+    <table id="patientsTable" border="1">
+        <thead>
+        <tr>
+            <th></th>
+            <th>病人ID</th>
+            <th>病人姓名</th>
+            <th>病人年龄</th>
+            <th>病人性别</th>
+            <th>病人电话</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="pagination" class="pagination"></div>
+</div>
+<div class="modal fade" id="chartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="card-text h3" id="name2">男女分布图表</p>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="genderChart"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+
+    $(document).ready(function() {
+        selectPatient();
+    });
+
+    var pageNum
+    var pages
+    var pageSize = 5;
+
+    function selectPatient(pageNo) {
+        var patientName = $('#patientName').val();
+        pageNum = pageNo || 1;
+
+        $.ajax({
+            url: '/HospitalAppointmentSystem_war/patient/selectPatientByPage?',
+            type: 'GET',
+            data: {
+                pageNum: pageNum,
+                pageSize: pageSize,
+                patientName: patientName,
+            },
+            dataType: 'json',
+            contentType: 'application/json;charset=utf-8',
+            success: function (data) {
+                pageNum = data.pageNum;
+                pages = data.pages;
+                loadPatients(data);
+            }
+        });
+    };
+
+    function loadPatients(data) {
+        var table = $('#patientsTable tbody');
+        table.empty();
+        $.each(data.list, function(index, patient) {
+                table.append(
+                    "<tr>" +
+                    "<td class='center-checkbox'><input type='checkbox' name='patientCheckbox' value='" + patient.patientID + "'>"+ "</td>" +
+                    "<td>" + patient.patientID+ "</td>" +
+                    "<td>" + patient.patientName + "</td>" +
+                    "<td>" + patient.patientAge + "</td>" +
+                    "<td>" + patient.patientGender + "</td>" +
+                    "<td>" + patient.patientPhone + "</td>" +
+                    "</tr>"
+                );
+        });
+        pagination({
+            cur: data.pageNum,
+            total: data.pages,
+            len: data.pages,
+            targetId: 'pagination',
+            callback: function (total) {
+                var oPages = document.getElementsByClassName('page-index');
+                for (var i = 0; i < oPages.length; i++) {
+                    oPages[i].onclick = function () {
+                        selectPatient(this.getAttribute('data-index'), pageSize);
+                    }
+                }
+                var goPage = document.getElementById('go-search');
+                goPage.onclick = function () {
+                    var index = document.getElementById('yeshu').value;
+                    if (!index || (+index > total) || (+index < 1)) {
+                        return;
+                    }
+                    selectPatient(index, pageSize);
+                }
+            }
+        });
+    }
+
+    // 批量删除病人
+    $('#deletePatientsButton').click(function() {
+        var patientIDs = [];
+        $('input[name="patientCheckbox"]:checked').each(function() {
+            patientIDs.push($(this).val());
+        });
+
+        if (patientIDs.length > 0) {
+            var confirmDelete = confirm("确定要删除选中的病人吗？");
+            if (confirmDelete) {
+                $.ajax({
+                    url: '/HospitalAppointmentSystem_war/patient/removePatient',
+                    type: 'DELETE',
+                    data: JSON.stringify(patientIDs),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert(response)
+                        selectPatient();
+                    },
+                    error: function(error) {
+                        console.log('Delete error:', error);
+                    }
+                });
+            }
+        } else {
+            alert("请先选择要删除的病人");
+        }
+    });
+
+    function getPatientData() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: '/HospitalAppointmentSystem_war/patient/selectPatientByPage?',
+                type: 'GET',
+                data: {
+                    pageNum: 1,
+                    pageSize: 1000,  // 获取尽可能多的数据
+                },
+                dataType: 'json',
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    // 计算男性和女性病人的数量
+                    var maleCount = 0;
+                    var femaleCount = 0;
+                    data.list.forEach(patient => {
+                        if (patient.patientGender === '男') {
+                            maleCount++;
+                        } else if (patient.patientGender === '女') {
+                            femaleCount++;
+                        }
+                    });
+
+                    resolve({
+                        male: maleCount,
+                        female: femaleCount
+                    });
+                },
+                error: function (error) {
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    function createChart(data) {
+        var ctx = document.getElementById('genderChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['男', '女'],
+                datasets: [{
+                    data: [data.male, data.female],
+                    backgroundColor: ['#0000FF', '#FFB6C1']
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: '病人性别分布'
+                }
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        getPatientData().then(data => {
+            createChart(data);
+        }).catch(error => {
+            console.log('Error:', error);
+        });
+    });
+</script>
+
+</html>

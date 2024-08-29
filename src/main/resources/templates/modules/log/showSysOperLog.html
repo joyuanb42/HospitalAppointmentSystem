@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>操作记录列表</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/pagination.css}">
+    <link rel="stylesheet" th:href="@{/css/searchStyle.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/pagination.js}"></script>
+</head>
+<body>
+<div style="margin-bottom: 20px">
+    操作方法:
+    <input type="text" id="operMethod" name="operMethod">
+    操作类型:
+    <select id="operType" name="operType">
+        <option value="">请选择</option>
+        <option value="ADD">ADD</option>
+        <option value="EDIT">EDIT</option>
+        <option value="REMOVE">REMOVE</option>
+        <option value="SELECT">SELECT</option>
+    </select>
+    <input type="submit" onclick="selectSysOperLog()" value="查询" class="btn btn-primary">
+</div>
+<div>
+    <table id="sysOperLogsTable" border="1">
+        <thead>
+        <tr>
+            <th>操作ID</th>
+            <th>操作模块</th>
+            <th>操作方法</th>
+            <th>操作类型</th>
+            <th>操作描述</th>
+            <th>请求方法</th>
+            <th>请求参数</th>
+            <th>请求地址</th>
+            <th>操作时间</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="pagination" class="pagination"></div>
+</div>
+</body>
+<script>
+
+    $(document).ready(function() {
+        selectSysOperLog();
+    });
+
+    var pageNum
+    var pages
+    var pageSize = 10;
+
+    function selectSysOperLog(pageNo) {
+        var operMethod = $('#operMethod').val();
+        var operType = $('#operType').val();
+        pageNum = pageNo || 1;
+
+        $.ajax({
+            url: '/HospitalAppointmentSystem_war/sysOperLog/selectSysOperLogByPage?',
+            type: 'GET',
+            data: {
+                pageNum: pageNum,
+                pageSize: pageSize,
+                operMethod: operMethod,
+                operType: operType
+            },
+            dataType: 'json',
+            contentType: 'application/json;charset=utf-8',
+            success: function (data) {
+                pageNum = data.pageNum;
+                pages = data.pages;
+                loadSysOperLogs(data);
+            }
+        });
+    };
+
+    function loadSysOperLogs(data) {
+        var table = $('#sysOperLogsTable tbody');
+        table.empty();
+        $.each(data.list, function(index, sysOperLog) {
+            table.append(
+                "<tr>" +
+                "<td>" + sysOperLog.id+ "</td>" +
+                "<td>" + sysOperLog.operModule + "</td>" +
+                "<td>" + sysOperLog.operMethod + "</td>" +
+                "<td>" + sysOperLog.operType + "</td>" +
+                "<td>" + sysOperLog.operDesc + "</td>" +
+                "<td>" + sysOperLog.reqMethod + "</td>" +
+                "<td>" + sysOperLog.operParam + "</td>" +
+                "<td>" + sysOperLog.operUri + "</td>" +
+                "<td>" + sysOperLog.createTime + "</td>" +
+                "</tr>"
+            );
+        });
+        pagination({
+            cur: data.pageNum,
+            total: data.pages,
+            len: data.pages,
+            targetId: 'pagination',
+            callback: function (total) {
+                var oPages = document.getElementsByClassName('page-index');
+                for (var i = 0; i < oPages.length; i++) {
+                    oPages[i].onclick = function () {
+                        selectSysOperLog(this.getAttribute('data-index'), pageSize);
+                    }
+                }
+                var goPage = document.getElementById('go-search');
+                goPage.onclick = function () {
+                    var index = document.getElementById('yeshu').value;
+                    if (!index || (+index > total) || (+index < 1)) {
+                        return;
+                    }
+                    selectSysOperLog(index, pageSize);
+                }
+            }
+        });
+    }
+</script>
+</html>

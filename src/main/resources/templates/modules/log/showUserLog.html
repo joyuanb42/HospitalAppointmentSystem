@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录记录列表</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/pagination.css}">
+    <link rel="stylesheet" th:href="@{/css/searchStyle.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/pagination.js}"></script>
+</head>
+<body>
+<div style="margin-bottom: 20px">
+    用户ID：:
+    <input type="text" id="userId" name="userId">
+    <input type="submit" onclick="selectUserLog()" value="查询" class="btn btn-primary">
+</div>
+<div>
+    <table id="userLogsTable" border="1">
+        <thead>
+        <tr>
+            <th>登录ID</th>
+            <th>用户ID</th>
+            <th>登录时间</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="pagination" class="pagination"></div>
+</div>
+</body>
+<script>
+
+    $(document).ready(function() {
+        selectUserLog();
+    });
+
+    var pageNum
+    var pages
+    var pageSize = 10;
+
+    function selectUserLog(pageNo) {
+        var userId = $('#userId').val();
+        pageNum = pageNo || 1;
+
+        $.ajax({
+            url: '/HospitalAppointmentSystem_war/userLog/selectUserLogByPage?',
+            type: 'GET',
+            data: {
+                pageNum: pageNum,
+                pageSize: pageSize,
+                userId: userId,
+            },
+            dataType: 'json',
+            contentType: 'application/json;charset=utf-8',
+            success: function (data) {
+                pageNum = data.pageNum;
+                pages = data.pages;
+                loadUserLogs(data);
+            }
+        });
+    };
+
+    function loadUserLogs(data) {
+        var table = $('#userLogsTable tbody');
+        table.empty();
+        $.each(data.list, function(index, userLog) {
+            var loginTime = new Date(userLog.loginTime).toLocaleDateString('zh-CN');
+            table.append(
+                "<tr>" +
+                "<td>" + userLog.userLogId+ "</td>" +
+                "<td>" + userLog.userId + "</td>" +
+                "<td>" + loginTime + "</td>" +
+                "</tr>"
+            );
+        });
+        pagination({
+            cur: data.pageNum,
+            total: data.pages,
+            len: data.pages,
+            targetId: 'pagination',
+            callback: function (total) {
+                var oPages = document.getElementsByClassName('page-index');
+                for (var i = 0; i < oPages.length; i++) {
+                    oPages[i].onclick = function () {
+                        selectUserLog(this.getAttribute('data-index'), pageSize);
+                    }
+                }
+                var goPage = document.getElementById('go-search');
+                goPage.onclick = function () {
+                    var index = document.getElementById('yeshu').value;
+                    if (!index || (+index > total) || (+index < 1)) {
+                        return;
+                    }
+                    selectUserLog(index, pageSize);
+                }
+            }
+        });
+    }
+</script>
+</html>

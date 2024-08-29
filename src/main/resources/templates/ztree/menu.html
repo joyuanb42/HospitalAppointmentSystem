@@ -1,0 +1,289 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ztree</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/ztree/css/zTreeStyle/zTreeStyle.css}" type="text/css">
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <!-- js -->
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/ztree/js/jquery.ztree.core.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+
+    <div style="margin-right: 20px;">
+        <a th:href="@{/welcome}" class="btn btn-primary"><- 返回主页</a>
+        <ul id="jTree" class="ztree"></ul>
+    </div>
+
+    <div class="card text-center" style="display: flex; flex-direction: column; justify-content: center; width: 500px; margin-left: 20px;">
+        <div class="card-header">
+            Ztree显示和修改权限目录
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">节点信息</h5>
+            <p class="card-text" id="name1">节点名称：</p>
+            <p class="card-text" id="id">当前节点：</p>
+            <p class="card-text" id="pid1">当前父节点：</p>
+            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">增加</button>
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal">修改</button>
+                <button id="deleteButton" type="button" class="btn btn-danger">删除</button>
+            </div>
+            <input type="hidden" id="deleteId">
+        </div>
+        <div class="card-footer text-body-secondary">
+            @20214071419zyb
+        </div>
+    </div>
+</div>
+<!--增加节点-->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="card-text h3" id="name2">增加当前节点的子节点：</p>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <div class="mb-3">
+                        <p class="card-text" id="id2"></p>
+                        <input type="text" id="nodePid" name="nodePid" style="display: none;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nodeName">节点名称：</label>
+                        <input type="text" class="form-control" id="nodeName" name="nodeName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nodeName">url：</label>
+                        <input type="text" class="form-control" id="nodeUrl" name="nodeUrl">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nodeName">权限：</label>
+                        <input type="text" class="form-control" id="nodePermission" name="nodePermission">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nodeName">跳转：</label>
+                        <input type="text" class="form-control" id="nodeTarget" name="nodeTarget">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nodeName">节点类型：</label>
+                        <input type="text" class="form-control" id="nodeStatus" name="nodeStatus">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="submit" class="btn btn-primary">增加</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!--修改节点-->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="card-text h3" id="name3">修改当前节点：</p>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <div class="mb-3">
+                        <p class="card-text" id="id3"></p>
+                        <input type="text" id="editId" name="editid" style="display: none;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPid">父节点：</label>
+                        <input type="text" class="form-control" id="editPid" name="editPid">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editName">节点名称：</label>
+                        <input type="text" class="form-control" id="editName" name="editName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUrl">url：</label>
+                        <input type="text" class="form-control" id="editUrl" name="editUrl">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPermission">权限：</label>
+                        <input type="text" class="form-control" id="editPermission" name="editPermission">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTarget">跳转：</label>
+                        <input type="text" class="form-control" id="editTarget" name="editTarget">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStatus">节点类型：</label>
+                        <input type="text" class="form-control" id="editStatus" name="editStatus">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="submit" class="btn btn-primary">修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!--删除-->
+
+<script>
+
+    $(function() {
+        var setting = {
+            data: {
+                simpleData: {
+                    enable: true,
+                    idKey: "id",
+                    pIdKey: "pid",
+                    rootPId: 0
+                }
+            },
+            callback: {
+                onClick: function(event, treeId, treeNode) {
+                    event.preventDefault();
+                    $("#id").text("当前节点：" + treeNode.id);
+                    $("#id2").text("父节点：" + treeNode.id);
+                    $("#id3").text("当前节点：" + treeNode.id);
+                    $("#pid1").text("当前父节点：" + treeNode.pid);
+                    $("#pid3").text("当前父节点：" + treeNode.pid);
+                    $("#name1").text("节点名称：" + treeNode.name);
+                    $("#name2").text("增加当前节点的子节点：" + treeNode.name);
+                    $("#name3").text("修改当前节点：" + treeNode.name);
+                    $("#nodePid").val(treeNode.id);
+                    $("#editId").val(treeNode.id);
+                    $("#deleteId").val(treeNode.id);
+                }
+            }
+        };
+
+        $.ajax({
+            url: "/HospitalAppointmentSystem_war/treeNode/selectTreeNodes",
+            dataType: "json",
+            success : function(data) {
+                $.fn.zTree.init($("#jTree"), setting, data);
+            }
+        });
+    });
+    // 增加节点
+    // 当模态框中的表单被提交时
+    $("#addForm").submit(function(event) {
+        console.log("Form submit event binding successful.");
+        // 阻止表单的默认提交行为
+        event.preventDefault();
+        // 获取表单中的数据
+        var nodePid = $("#nodePid").val();
+        var nodeName = $("#nodeName").val();
+        var nodeUrl = $("#nodeUrl").val();
+        var nodePermission = $("#nodePermission").val();
+        var nodeTarget = $("#nodeTarget").val();
+        var nodeStatus = $("#nodeStatus").val();
+
+        // 创建一个新的节点对象
+        var newNode = {
+            pid: nodePid,
+            name: nodeName,
+            url: nodeUrl,
+            permission: nodePermission,
+            target: nodeTarget,
+            status: nodeStatus
+        };
+
+        // 发送Ajax请求到服务器
+        $.ajax({
+            url: "/HospitalAppointmentSystem_war/treeNode/addNode",  // 服务器接口地址
+            type: "POST",  // 请求方法
+            contentType: "application/json",  // 请求内容类型
+            data: JSON.stringify(newNode),  // 将节点对象转换为JSON字符串
+            success: function(response) {  // 请求成功后的回调函数
+                // 如果服务器返回的响应是"节点添加成功"，则关闭模态框并刷新页面
+                if (response === "节点添加成功") {
+                    alert("节点添加成功")
+                    $("#addModal").modal('hide');
+                    location.reload();
+                } else {
+                    // 如果添加失败，显示错误消息
+                    console.log("节点添加失败")
+                    console.log(response);
+                    alert(response);
+                }
+            }
+        });
+    });
+
+    // 修改节点
+    $("#editForm").submit(function(event) {
+            event.preventDefault();
+            var editId = $("#editId").val();
+            var editPid = $("#editPid").val();
+            var editName = $("#editName").val();
+            var editUrl = $("#editUrl").val();
+            var editPermission = $("#editPermission").val();
+            var editTarget = $("#editTarget").val();
+            var editStatus = $("#editStatus").val();
+
+            var editNode = {
+                id: editId,
+                pid: editPid,
+                name: editName,
+                url: editUrl,
+                permission: editPermission,
+                target: editTarget,
+                status: editStatus
+            };
+
+            $.ajax({
+                url: "/HospitalAppointmentSystem_war/treeNode/editNode",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(editNode),
+                success: function(response) {
+                    if (response === "节点修改成功") {
+                        alert("节点修改成功")
+                        $("#editModal").modal('hide');
+                        location.reload();
+                    } else {
+                        console.log("节点修改失败")
+                        console.log(response);
+                        alert(response);
+                    }
+                }
+            });
+    });
+//删除节点
+    $("#deleteButton").click(function() {
+        // 获取当前选中节点的id
+        var deleteId = $("#deleteId").val();
+
+        // 弹出确认对话框
+        var result = confirm("确定要删除节点 " + deleteId + " 吗？");
+        // 如果用户点击"确定"，则发送Ajax请求到服务器
+        if (result) {
+            $.ajax({
+                url: "/HospitalAppointmentSystem_war/treeNode/deleteNode/",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(deleteId),
+                success: function(response) {
+                    // 如果服务器返回的响应是"节点删除成功"，则刷新页面
+                    if (response === "节点删除成功") {
+                        alert("节点删除成功");
+                        location.reload();
+                    } else {
+                        // 如果删除失败，显示错误消息
+                        console.log("节点删除失败");
+                        console.log(response);
+                        alert(response);
+                    }
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

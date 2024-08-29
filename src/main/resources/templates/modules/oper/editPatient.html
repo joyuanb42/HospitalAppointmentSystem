@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>修改病人</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div class="wrap">
+    <div>
+        <div class="d-flex justify-content-between align-items-center">
+            <h5>修改病人信息</h5>
+            <a th:href="@{/patient/toShowPatient}" class="btn btn-close float-right"></a>
+        </div>
+        <hr class="border border-primary border-3 opacity-75">
+        <form th:action="@{/patient/editPatient}" method="post" style="width: 500px;margin: auto">
+            <div class="mb-3">
+                <label for="patientID" class="form-label">病人ID</label>
+                <input type="text" class="form-control" id="patientID" name="patientID" required>
+            </div>
+            <div class="mb-3">
+                <label for="patientName" class="form-label">病人姓名</label>
+                <input type="text" class="form-control" id="patientName" name="patientName" required>
+            </div>
+            <div class="mb-3">
+                <label for="patientAge"  class="form-label">病人年龄</label>
+                <input type="text" class="form-control" id="patientAge" name="patientAge" required>
+            </div>
+            <div class="mb-3">
+                <label for="patientGender" class="form-label">病人性别</label>
+                <input type="text" class="form-control" id="patientGender" name="patientGender"  required>
+            </div>
+            <div class="mb-3">
+                <label for="patientPhone" class="form-label">病人电话</label>
+                <input type="text" class="form-control" id="patientPhone" name="patientPhone" required>
+            </div>
+            <div class="mb-3">
+                <button class="btn btn-primary" type="submit">修改</button>
+                <button type="reset" class="btn btn-secondary">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+<style>
+    .wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 115vh;
+    }
+</style>
+</html>

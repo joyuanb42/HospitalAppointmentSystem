@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>医生列表</title>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/pagination.css}">
+    <link rel="stylesheet" th:href="@{/css/searchStyle.css}">
+    <script type="text/javascript" th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/pagination.js}"></script>
+</head>
+
+<body>
+<div style="margin-bottom: 20px">
+    预约医生:
+    <input type="text" id="doctorName" name="doctorName" width="50px">
+    就诊科目：
+    <select id="doctorSpeciality" name="doctorSpeciality">
+        <option value="">请选择</option>
+        <option value="外科">外科</option>
+        <option value="内科">内科</option>
+        <option value="骨科">骨科</option>
+        <option value="儿科">儿科</option>
+    </select>
+    <input type="submit" onclick="selectDoctor()" value="查询" class="btn btn-primary">
+    <a th:href="@{/doctor/toAddDoctor}" class="btn btn-success">添加医生</a>
+    <a th:href="@{/doctor/toEditDoctor}" class="btn btn-warning">修改医生</a>
+    <button id="deleteDoctorsButton" class="btn btn-danger">删除医生</button>
+    <a th:href="@{/data/exportDoctor}" class="btn btn-dark">导出</a>
+    <form method="post" enctype="multipart/form-data" style="float: right">
+        <div class="input-group">
+            <input id="file" class="form-control"  type="file" name="excel"/>
+            <button class="btn btn-outline-secondary" type="submit" onclick="uploadFile()">导入</button>
+        </div>
+    </form>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+</div>
+<div>
+    <table id="doctorsTable" border="1">
+        <thead>
+        <tr>
+            <th></th>
+            <th>医生ID</th>
+            <th>医生姓名</th>
+            <th>医生年龄</th>
+            <th>医生性别</th>
+            <th>医生专业</th>
+            <th>医生电话</th>
+            <th>病人ID</th>
+            <th>预约时间</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="pagination" class="pagination"></div>
+</div>
+</body>
+
+<script>
+
+    $(document).ready(function() {
+        selectDoctor();
+    });
+
+    var pageNum
+    var pages
+    var pageSize = 5;
+
+    function selectDoctor(pageNo) {
+        var doctorName = $('#doctorName').val();
+        var doctorSpeciality = $('#doctorSpeciality').val();
+        pageNum = pageNo || 1;
+
+        $.ajax({
+            url: '/HospitalAppointmentSystem_war/doctor/selectDoctorByPage?',
+            type: 'GET',
+            data: {
+                pageNum: pageNum,
+                pageSize: pageSize,
+                doctorName: doctorName,
+                doctorSpeciality: doctorSpeciality
+            },
+            dataType: 'json',
+            contentType: 'application/json;charset=utf-8',
+            success: function (data) {
+                pageNum = data.pageNum;
+                pages = data.pages;
+                loadDoctors(data);
+            }
+        });
+    };
+
+    function loadDoctors(data) {
+        var table = $('#doctorsTable tbody');
+        table.empty();
+        $.each(data.list, function(index, doctor) {
+            if (!doctor.appointment) {
+                table.append(
+                    "<tr>" +
+                    "<td class='center-checkbox'><input type='checkbox' name='doctorCheckbox' value='" + doctor.doctorID + "'>"+ "</td>" +
+                    "<td>" + doctor.doctorID+ "</td>" +
+                    "<td>" + doctor.doctorName + "</td>" +
+                    "<td>" + doctor.doctorAge + "</td>" +
+                    "<td>" + doctor.doctorGender + "</td>" +
+                    "<td>" + doctor.doctorSpecialty + "</td>" +
+                    "<td>" + doctor.doctorPhone + "</td>" +
+                    "</tr>"
+                );
+            } else {
+                var patientID = doctor.appointment.patientID ? doctor.appointment.patientID : 'N/A';
+                var appointmentDate = new Date(doctor.appointment.appointmentTime).toLocaleDateString('zh-CN');
+                if (patientID === 'N/A') {
+                    table.append(
+                        "<tr>" +
+                        "<td class='center-checkbox'><input type='checkbox' name='doctorCheckbox' value='" + doctor.doctorID + "'>"+ "</td>" +
+                        "<td>" + doctor.doctorID + "</td>" +
+                        "<td>" + doctor.doctorName + "</td>" +
+                        "<td>" + doctor.doctorAge + "</td>" +
+                        "<td>" + doctor.doctorGender + "</td>" +
+                        "<td>" + doctor.doctorSpecialty + "</td>" +
+                        "<td>" + doctor.doctorPhone + "</td>" +
+                        "</tr>"
+                    );
+                }else {
+                    table.append(
+                        "<tr>" +
+                        "<td class='center-checkbox'><input type='checkbox' name='doctorCheckbox' value='" + doctor.doctorID + "'>"+ "</td>" +
+                        "<td>" + doctor.doctorID + "</td>" +
+                        "<td>" + doctor.doctorName + "</td>" +
+                        "<td>" + doctor.doctorAge + "</td>" +
+                        "<td>" + doctor.doctorGender + "</td>" +
+                        "<td>" + doctor.doctorSpecialty + "</td>" +
+                        "<td>" + doctor.doctorPhone + "</td>" +
+                        "<td>" + patientID + "</td>" +
+                        "<td>" + appointmentDate + "</td>" +
+                        "</tr>"
+                    );
+                }
+            }
+        });
+        pagination({
+            cur: data.pageNum,
+            total: data.pages,
+            len: data.pages,
+            targetId: 'pagination',
+            callback: function (total) {
+                var oPages = document.getElementsByClassName('page-index');
+                for (var i = 0; i < oPages.length; i++) {
+                    oPages[i].onclick = function () {
+                        selectDoctor(this.getAttribute('data-index'), pageSize);
+                    }
+                }
+                var goPage = document.getElementById('go-search');
+                goPage.onclick = function () {
+                    var index = document.getElementById('yeshu').value;
+                    if (!index || (+index > total) || (+index < 1)) {
+                        return;
+                    }
+                    selectDoctor(index, pageSize);
+                }
+            }
+        });
+    }
+
+    // 批量删除医生
+    $('#deleteDoctorsButton').click(function() {
+        var doctorIDs = [];
+        $('input[name="doctorCheckbox"]:checked').each(function() {
+            doctorIDs.push($(this).val());
+        });
+
+        if (doctorIDs.length > 0) {
+            var confirmDelete = confirm("确定要删除选中的医生吗？");
+            if (confirmDelete) {
+                $.ajax({
+                    url: '/HospitalAppointmentSystem_war/doctor/removeDoctor',
+                    type: 'DELETE',
+                    data: JSON.stringify(doctorIDs),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert(response)
+                        selectDoctor();
+                    },
+                    error: function(error) {
+                        console.log('Delete error:', error);
+                    }
+                });
+            }
+        } else {
+            alert("请先选择要删除的医生");
+        }
+    });
+
+    function uploadFile() {
+        var fileInput = document.getElementById('file');
+        var file = fileInput.files[0];
+        if (!file) {
+            alert("没有选择文件");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('excel', file);
+
+        $.ajax({
+            url: '/HospitalAppointmentSystem_war/data/importDoctor',
+            type: 'POST',
+            data: formData,
+            processData: false, // 不处理数据
+            contentType: false, // 不设置内容类型
+            success: function(response) {
+                console.log('文件上传成功');
+                console.log(response);
+                // 处理响应
+            },
+            error: function(error) {
+                console.log('文件上传失败', error);
+                // 处理错误
+            }
+        });
+    }
+</script>
+
+</html>
